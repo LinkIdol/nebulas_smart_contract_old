@@ -43,14 +43,7 @@ class StandardNRC721Token {
             "tokenOwner": null,
             "tokenPrice": null,
             "tokenClaimed": null,
-            "ownedTokensCount": {
-                parse(value) {
-                    return new BigNumber(value)
-                },
-                stringify(o) {
-                    return o.toString(10)
-                }
-            },
+            "ownedTokensCount": null,
             "tokenApprovals": null,
             "tokenToChara": null,
             "operatorApprovals": {
@@ -74,10 +67,10 @@ class StandardNRC721Token {
 
     balanceOf(_owner) {
         var balance = this.ownedTokensCount.get(_owner)
-        if (balance instanceof BigNumber) {
-            return balance.toString(10)
+        if (balance instanceof Number) {
+            return balance
         } else {
-            return "0"
+            return 0
         }
     }
 
@@ -179,7 +172,7 @@ class StandardNRC721Token {
     _addTokenTo(_to, _tokenId) {
         this.tokenOwner.set(_tokenId, _to)
         this.tokenPrice.set(_tokenId, 100 * this._nasToWei())
-        var tokenCount = this.ownedTokensCount.get(_to) || new BigNumber(0)
+        var tokenCount = this.ownedTokensCount.get(_to) || 0
         this.ownedTokensCount.set(_to, tokenCount + 1)
     }
 
@@ -368,7 +361,7 @@ class LinkIdolContract extends LinkIdolToken {
     }
 
     buyToken(_tokenId) {
-        var value = new BigNumber(Blockchain.transaction.value);
+        var value = Blockchain.transaction.value;
         if (value < this.priceOf(_tokenId)) {
             throw new Error("Sorry, insufficient bid.")
         }
@@ -399,7 +392,7 @@ class LinkIdolContract extends LinkIdolToken {
     withdraw(value) {
         this.onlyAdmins()
         // Only the owner can have the withdraw fund
-        return Blockchain.transfer(this.owner, new BigNumber(value))
+        return Blockchain.transfer(this.owner, value)
     }
 
     getReferPercentage() {
@@ -412,7 +405,7 @@ class LinkIdolContract extends LinkIdolToken {
         if (value.eq(this.cardPrice)) {
             var tokenId = this._issue(from, randomGirlId)
             if (referer !== "") {
-                Blockchain.transfer(referer, new BigNumber(value).dividedToIntegerBy(100 / this.referCutPercentage))
+                Blockchain.transfer(referer, value * (100 / this.referCutPercentage))
             }
             return tokenId
         } else {
